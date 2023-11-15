@@ -5,7 +5,7 @@ import styles from '@/styles/Home.module.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home() {
+export default function Home({ results }) {
   return (
     <>
       <Head>
@@ -15,100 +15,66 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.js</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
+        <h1>ぐるめいと</h1>
+        <ul className={styles.shopList}>
+          {results.shop && results.shop.map((data, i) => {
+            return (
+              <li key={i} className={styles.shop}>
+                <div className={styles.leftSide}>
+                  <a href={data.urls.pc}>
+                    <Image
+                      src={data.photo.pc.m}
+                      alt={data.name}
+                      width={168}
+                      height={168}
+                    />
+                  </a>
+                </div>
+                <div className={styles.rightSide}>
+                  <div className={styles.catch}>{data.catch}</div>
+                  <h3 className={styles.name}>
+                    <a href={data.urls.pc}>{data.name}</a>
+                  </h3>
+                  <div className={styles.address}>
+                    <span className={styles.bold}>住所：</span>
+                    {data.address}
+                  </div>
+                  <div className={styles.open}>
+                    <span className={styles.bold}>営業時間：</span>
+                    {data.open}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </main>
     </>
-  )
+  );
+}
+
+export async function getServerSideProps() {
+  try {
+    const apiKey = process.env.API_KEY;
+    const baseUrl = "https://webservice.recruit.co.jp/hotpepper/gourmet/v1/";
+    const serviceAria = "SA91"; 
+    const format = "json"; // XMLフォーマットなのでJSONに
+
+    // APIからデータをFetchします。
+    const res = await fetch(
+      `${baseUrl}?key=${apiKey}&service_area=${serviceAria}&format=${format}`
+    );
+    
+    if (!res.ok) {
+      throw new Error("Failed to fetch data from the API");
+    }
+
+    const json = await res.json();
+    const { results } = json;
+
+    return { props: { results } };
+  } catch (error) {
+    console.error("Error fetching data:", error.message);
+    return { props: { results: null } }; // またはエラー時のデフォルトの値を返すなど
+  }
 }
